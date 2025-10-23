@@ -10,8 +10,7 @@ import {
   Title,
 } from "chart.js";
 import { Bar } from "react-chartjs-2";
-import useReveal from "../hooks/useReveal";
-
+import useReveal from "/MisProyectos/devfinance/src/hooks/useReveal";
 ChartJS.register(
   BarController,
   BarElement,
@@ -35,7 +34,6 @@ export default function BalanceChart({ transactions = [] }) {
     .filter((t) => t.amount < 0)
     .reduce((acc, t) => acc + Math.abs(Number(t.amount)), 0);
 
-  // Datos base del gráfico
   const data = useMemo(
     () => ({
       labels: ["Ingresos", "Gastos"],
@@ -49,7 +47,6 @@ export default function BalanceChart({ transactions = [] }) {
     }),
     [incomes, expenses]
   );
-
   const options = useMemo(
     () => ({
       responsive: true,
