@@ -1,0 +1,63 @@
+/* fuente y color base */
+body{
+    font-family: "Poppins",sans-serif;
+    background-color: #f7f9fb;
+    color: #212529;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+/*estilo del encabezado*/
+header{
+  background: linear-gradient(135deg, #007bff, #6610f2);
+  color: white;
+  text-align: center;
+  padding: 3rem 0;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+}
+/*Seccion principal*/
+main{
+  padding: 2rem 1rem;
+}
+/* tablas y tarjetas*/
+.table{
+  background-color: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+}
+.table th{
+  background-color: #f0f4f8;
+  color: #495057;
+}
+/*botones*/
+.btn-primary{
+  background: linear-gradient(135deg,#0d9efd, #6610f2);
+  border: none;
+  transition: transform 0.2s ease, box-shadow 0.02s ease;
+}
+.btn-primary:hover{
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+}
+/*animacion reveal(scroll)*/
+.reveal{
+  opacity:0;
+  transform: translateY(40px);
+  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+}
+.reveal.active{
+  opacity: 1;
+  transform: translateY(0);
+}
+/* footer*/
+footer{
+  text-align: center;
+  padding: 2rem;
+  background-color: #212529;
+  color: white;
+}
+
+canvas {
+  display: block !important;
+  width: 100% !important;
+  height: 400px !important;
+}
