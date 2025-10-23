@@ -1,4 +1,4 @@
-import { useRef, useEffect } from "react";
+import { useMemo, useRef } from "react";
 import {
   Chart as ChartJS,
   BarController,
@@ -10,6 +10,7 @@ import {
   Title,
 } from "chart.js";
 import { Bar } from "react-chartjs-2";
+import useReveal from "../hooks/useReveal";
 
 ChartJS.register(
   BarController,
@@ -22,7 +23,8 @@ ChartJS.register(
 );
 
 export default function BalanceChart({ transactions = [] }) {
-  const chartRef = useRef(null); // mantiene referencia al canvas
+  const containerRef = useRef(null);
+  useReveal(containerRef);
 
   // Calcular ingresos y gastos
   const incomes = transactions
@@ -34,37 +36,35 @@ export default function BalanceChart({ transactions = [] }) {
     .reduce((acc, t) => acc + Math.abs(Number(t.amount)), 0);
 
   // Datos base del gráfico
-  const data = {
-    labels: ["Ingresos", "Gastos"],
-    datasets: [
-      {
-        label: "Monto total ($)",
-        data: [incomes, expenses],
-        backgroundColor: ["#198754", "#dc3545"],
+  const data = useMemo(
+    () => ({
+      labels: ["Ingresos", "Gastos"],
+      datasets: [
+        {
+          label: "Monto total ($)",
+          data: [incomes, expenses],
+          backgroundColor: ["#198754", "#dc3545"],
+        },
+      ],
+    }),
+    [incomes, expenses]
+  );
+
+  const options = useMemo(
+    () => ({
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: false,
+      plugins: {
+        legend: { position: "bottom" },
+        title: { display: true, text: "Resumen Financiero" },
       },
-    ],
-  };
-
-  const options = {
-    responsive: true,
-    maintainAspectRatio: false,
-    animation: false,
-    plugins: {
-      legend: { position: "bottom" },
-      title: { display: true, text: "Resumen Financiero" },
-    },
-  };
-
-  // 🔁 Actualiza solo los datos del gráfico sin desmontar
-  useEffect(() => {
-    const chart = chartRef.current;
-    if (!chart) return;
-    chart.data = data;
-    chart.update();
-  }, [transactions]); // se ejecuta cuando cambian las transacciones
+    }),
+    []
+  );
 
   return (
-    <div className="mt-5 text-center reveal">
+    <div ref={containerRef} className="mt-5 text-center reveal">
       <h4 className="fw-bold mb-4">Resumen Financiero</h4>
       <div
         className="col-md-6 mx-auto"
@@ -76,7 +76,7 @@ export default function BalanceChart({ transactions = [] }) {
           position: "relative",
         }}
       >
-        <Bar ref={chartRef} data={data} options={options} />
+        <Bar data={data} options={options} />
       </div>
     </div>
   );
