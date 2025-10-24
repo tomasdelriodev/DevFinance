@@ -21,7 +21,7 @@ ChartJS.register(
   Title
 );
 
-export default function BalanceChart({ transactions = [] }) {
+export default function BalanceChart({ transactions = [], startDate = "", endDate = "" }) {
   const containerRef = useRef(null);
   useReveal(containerRef);
 
@@ -60,16 +60,26 @@ export default function BalanceChart({ transactions = [] }) {
     []
   );
 
+  const filterLabel = useMemo(() => {
+    if (!startDate && !endDate) return "";
+    const fmt = (s) =>
+      s ? new Intl.DateTimeFormat("es-AR").format(new Date(s + "T00:00:00")) : "";
+    const from = fmt(startDate);
+    const to = fmt(endDate);
+    return `Filtrado: ${from || 'inicio'} — ${to || 'hoy'}`;
+  }, [startDate, endDate]);
+
   return (
-    <div ref={containerRef} className="mt-5 text-center reveal">
+    <div id="balance-chart" ref={containerRef} className="mt-5 text-center reveal">
       <h4 className="fw-bold mb-4">Resumen Financiero</h4>
+      {filterLabel && <div className="text-muted mb-2" style={{fontSize: '0.9rem'}}>{filterLabel}</div>}
       <div
-        className="col-md-6 mx-auto"
+        className="col-md-6 mx-auto chart-card"
         style={{
           height: "400px",
           width: "100%",
           maxWidth: "600px",
-          backgroundColor: "#f8f9fa",
+          backgroundColor: "var(--card-bg)",
           position: "relative",
         }}
       >

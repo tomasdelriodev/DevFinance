@@ -1,17 +1,87 @@
-/* fuente y color base */
+/* Design tokens */
+:root{
+  --bg: #f7f9fb;
+  --text: #212529;
+  --card-bg: #ffffff;
+  --surface: #f8f9fa;
+  --table-header-bg: #f0f4f8;
+  --table-header-text: #495057;
+  --input-bg: #ffffff;
+  --input-border: #bfc6cf;
+  --input-focus: #6610f2;
+  --footer-bg: #212529;
+  --footer-text: #ffffff;
+  --primary-1: #0d9efd;
+  --primary-2: #6610f2;
+  --header-1: #007bff;
+  --header-2: #6610f2;
+  --shadow: rgba(0,0,0,0.15);
+  --border: rgba(0,0,0,0.08);
+  /* Tintes intensos solicitados (opción A) */
+  --income-tint: rgba(0, 255, 0, 0.3);
+  --expense-tint: rgba(255, 0, 0, 0.3);
+}
+
 body{
-    font-family: "Poppins",sans-serif;
-    background-color: #f7f9fb;
-    color: #212529;
-    transition: background-color 0.3s ease, color 0.3s ease;
+  font-family: "Poppins",sans-serif;
+  background-color: var(--bg);
+  color: var(--text);
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+/* Dark theme */
+body.dark{
+  --bg: #0f1115;
+  --text: #e6e6e6;
+  --card-bg: #1a1f29;
+  --surface: #111520;
+  --table-header-bg: #1f2430;
+  --table-header-text: #d0d3d9;
+  --input-bg: #1a1f29;
+  --input-border: #2b3442;
+  --input-focus: #7a3bff;
+  --footer-bg: #0b0e14;
+  --footer-text: #e6e6e6;
+  --primary-1: #3a7bfd;
+  --primary-2: #7a3bff;
+  --header-1: #3a7bfd;
+  --header-2: #7a3bff;
+  --shadow: rgba(0,0,0,0.5);
+  --border: rgba(255,255,255,0.12);
+  /* Tintes fríos en oscuro (pedido): ingresos cian, gastos magenta */
+  /* Pasteles en oscuro: cian y magenta, menos opacos */
+  --income-tint: rgba(180, 255, 255, 0.14);
+  --expense-tint: rgba(255, 180, 255, 0.14);
 }
 /*estilo del encabezado*/
 header{
-  background: linear-gradient(135deg, #007bff, #6610f2);
-  color: white;
-  text-align: center;
-  padding: 3rem 0;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+  background: var(--bg);
+  color: var(--text);
+  padding: 1.25rem 0;
+  border-bottom: 1px solid var(--border);
+  box-shadow: none;
+  transition: background-color 0.25s ease, color 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
+}
+
+/* Marca del sitio */
+.brand{
+  font-weight: 800;
+  letter-spacing: 0.3px;
+  /* Efecto en modo claro: degradado del header */
+  background: linear-gradient(135deg, var(--header-1), var(--header-2));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: 0 1px 0 rgba(0,0,0,0.08);
+  transition: color 0.25s ease, text-shadow 0.25s ease, background 0.25s ease;
+}
+body.dark .brand{
+  /* Efecto en modo oscuro: degradado principal, un poco más intenso */
+  background: linear-gradient(135deg, var(--primary-1), var(--primary-2));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: 0 1px 0 rgba(0,0,0,0.2);
 }
 /*Seccion principal*/
 main{
@@ -19,24 +89,78 @@ main{
 }
 /* tablas y tarjetas*/
 .table{
-  background-color: white;
+  background-color: var(--card-bg);
   border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  transition: background-color 0.25s ease, color 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
 }
 .table th{
-  background-color: #f0f4f8;
-  color: #495057;
+  background-color: var(--table-header-bg);
+  color: var(--table-header-text);
 }
+/* Tintes por tipo de transacción */
+.card-income { background-color: rgba(40, 167, 69, 0.1); color: #198754; }
+.card-expense { background-color: rgba(220, 53, 69, 0.1); color: #dc3545; }
+.table.table-striped > tbody > tr.card-income > td,
+.table.table-striped > tbody > tr.card-income > th {
+  /* Anula el rayado de Bootstrap usando su variable de acento */
+  --bs-table-accent-bg: rgba(40, 167, 69, 0.1);
+  background-color: transparent !important;
+  color: #198754;
+  box-shadow: inset 0 0 0 9999px var(--bs-table-accent-bg) !important;
+}
+.table.table-striped > tbody > tr.card-expense > td,
+.table.table-striped > tbody > tr.card-expense > th {
+  --bs-table-accent-bg: rgba(220, 53, 69, 0.1);
+  background-color: transparent !important;
+  color: #dc3545;
+  box-shadow: inset 0 0 0 9999px var(--bs-table-accent-bg) !important;
+}
+[data-theme='dark'] .card-income { background-color: rgba(63, 207, 127, 0.1); color: #3fcf7f; }
+[data-theme='dark'] .card-expense { background-color: rgba(255, 92, 92, 0.1); color: #ff5c5c; }
+[data-theme='dark'] .table.table-striped > tbody > tr.card-income > td,
+[data-theme='dark'] .table.table-striped > tbody > tr.card-income > th {
+  --bs-table-accent-bg: rgba(63, 207, 127, 0.1);
+  background-color: transparent !important;
+  color: #3fcf7f;
+  box-shadow: inset 0 0 0 9999px var(--bs-table-accent-bg) !important;
+}
+[data-theme='dark'] .table.table-striped > tbody > tr.card-expense > td,
+[data-theme='dark'] .table.table-striped > tbody > tr.card-expense > th {
+  --bs-table-accent-bg: rgba(255, 92, 92, 0.1);
+  background-color: transparent !important;
+  color: #ff5c5c;
+  box-shadow: inset 0 0 0 9999px var(--bs-table-accent-bg) !important;
+}
+
 /*botones*/
 .btn-primary{
-  background: linear-gradient(135deg,#0d9efd, #6610f2);
+  background-color: #6f42c1; /* violeta plano */
+  color: #ffffff;
   border: none;
-  transition: transform 0.2s ease, box-shadow 0.02s ease;
+  transition: transform 0.2s ease, box-shadow 0.02s ease, filter 0.15s ease;
 }
 .btn-primary:hover{
   transform: translateY(-2px);
-  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 6px 15px var(--shadow);
+  filter: brightness(0.95);
+}
+
+/* Inputs más legibles (borde + foco) */
+.form-control, .form-select {
+  background-color: var(--input-bg) !important;
+  color: var(--text) !important;
+  border: 1px solid var(--input-border) !important;
+  border-radius: 8px !important;
+}
+.form-control::placeholder {
+  color: #6c757d;
+  opacity: 1;
+}
+.form-control:focus, .form-select:focus {
+  border-color: var(--input-focus) !important;
+  box-shadow: 0 0 0 0.2rem rgba(102, 16, 242, 0.15) !important; /* acorde al violeta */
 }
 /*animacion reveal(scroll)*/
 .reveal{
@@ -52,12 +176,157 @@ main{
 footer{
   text-align: center;
   padding: 2rem;
-  background-color: #212529;
-  color: white;
+  background-color: var(--footer-bg);
+  color: var(--footer-text);
+  transition: background-color 0.25s ease, color 0.25s ease;
 }
 
-canvas {
-  display: block !important;
-  width: 100% !important;
-  height: 400px !important;
+/* Carta contenedora para los gráficos */
+.chart-card{
+  background-color: var(--card-bg);
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  transition: background-color 0.25s ease, color 0.25s ease, box-shadow 0.25s ease;
+}
+
+/* Tabla apilada (stacked) en móvil para mejor legibilidad */
+@media (max-width: 576px) {
+  table.table-stacked thead {
+    display: none;
+  }
+  table.table-stacked tbody tr {
+    display: block;
+    max-width: 520px;
+    margin: 0 auto 8px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--card-bg);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    overflow: hidden;
+  }
+  table.table-stacked tbody tr.card-income { background: rgba(40, 167, 69, 0.1) !important; color: #198754; }
+  table.table-stacked tbody tr.card-expense { background: rgba(220, 53, 69, 0.1) !important; color: #dc3545; }
+  table.table-stacked tbody td {
+    display: block;
+    padding: 0.35rem 0.6rem;
+  }
+  table.table-stacked tbody td + td {
+    border-top: 1px solid var(--border);
+  }
+  table.table-stacked tbody td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: var(--table-header-text);
+    display: block;
+    margin-bottom: 0.15rem;
+    font-size: 0.8rem;
+  }
+  /* Forzar alineación a la izquierda en móvil, incluso si hay .text-end de Bootstrap */
+  table.table-stacked tbody td,
+  table.table-stacked tbody td.text-end,
+  table.table-stacked tbody .text-end {
+    text-align: left !important;
+  }
+  /* Excepciones: Monto y acciones a la derecha */
+  table.table-stacked tbody td[data-label="Monto"],
+  table.table-stacked tbody td.actions {
+    text-align: right !important;
+  }
+  /* Compactar badges en móvil */
+  .only-mobile .badge {
+    font-size: 0.75rem;
+    padding: 0.25em 0.45em;
+  }
+  /* Utilidades de visibilidad */
+  .only-mobile { display: block !important; }
+  .only-desktop { display: none !important; }
+}
+
+/* Ajuste extra para pantallas muy angostas (≈375x667) */
+@media (max-width: 400px) {
+  table.table-stacked tbody tr {
+    max-width: 340px;
+    margin: 0 auto 8px;
+  }
+  table.table-stacked tbody td {
+    padding: 0.3rem 0.55rem;
+  }
+  table.table-stacked tbody td::before {
+    font-size: 0.78rem;
+    margin-bottom: 0.12rem;
+  }
+  .only-mobile .badge {
+    font-size: 0.7rem;
+    padding: 0.2em 0.4em;
+  }
+}
+@media (min-width: 577px) {
+  .only-mobile { display: none !important; }
+  .only-desktop { display: table-cell !important; }
+}
+
+/* Botón solo icono */
+.icon-btn{
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  line-height: 1;
+}
+
+/* Evitar forzar tamaño del canvas para que Chart.js
+   gestione el tamaño y la resolución correctamente
+   según el contenedor y devicePixelRatio. */
+/* Mobile compact overrides: make cards more rectangular and dense */
+@media (max-width: 576px) {
+  table.table-stacked tbody tr {
+    margin: 0 auto 6px !important;
+    border-radius: 6px !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05) !important;
+  }
+  table.table-stacked tbody td {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+    padding: 0.3rem 0.5rem !important;
+  }
+  table.table-stacked tbody td::before {
+    display: block !important;
+    margin: 0 0 0.25rem 0 !important;
+    text-align: center !important;
+  }
+  table.table-stacked tbody td,
+  table.table-stacked tbody td.text-end,
+  table.table-stacked tbody .text-end {
+    text-align: center !important;
+  }
+  table.table-stacked tbody td[data-label="Monto"],
+  table.table-stacked tbody td.actions {
+    justify-content: center !important;
+    text-align: center !important;
+  }
+}
+
+@media (max-width: 400px) {
+  table.table-stacked tbody tr { margin: 0 auto 6px !important; max-width: 340px !important; }
+  table.table-stacked tbody td { padding: 0.25rem 0.45rem !important; }
+  table.table-stacked tbody td::before { margin: 0 0.45rem 0 0 !important; }
+}
+
+/* Garantizar visibilidad correcta en móvil: ocultar columnas desktop y mostrar combinadas */
+@media (max-width: 576px) {
+  table.table-stacked td.only-desktop { display: none !important; }
+  table.table-stacked td.only-mobile { display: block !important; }
+}
+html{ scroll-behavior: smooth; }
+
+/* Navegación a gráficos */
+.chart-nav .btn{ border-color: var(--border); }
+@media (max-width: 576px){
+  .chart-nav .btn{ padding: .2rem .5rem; font-size: .8rem; border-radius: 50rem; }
 }
