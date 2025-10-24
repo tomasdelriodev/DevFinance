@@ -1,0 +1,30 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Usuarios pueden leer/escribir solo sus transacciones
+    match /users/{userId}/transactions/{docId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+
+      allow create: if request.auth != null && request.auth.uid == userId
+        && isValidTransaction(request.resource.data);
+
+      allow update: if request.auth != null && request.auth.uid == userId
+        && isValidTransaction(request.resource.data);
+
+      allow delete: if request.auth != null && request.auth.uid == userId;
+    }
+
+    function isValidTransaction(data) {
+      return data.keys().hasOnly(['id','desc','amount','type','category','date','dateOnly','createdAt','updatedAt'])
+        && data.id is string
+        && data.desc is string
+        && data.category is string
+        && data.type in ['income','expense']
+        && data.amount is number
+        && ((data.date is string) || !(data.keys().hasAny(['date'])))
+        && ((data.dateOnly is string) || !(data.keys().hasAny(['dateOnly'])));
+    }
+  }
+}
+

@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import Header from "./components/Header";
 import TransactionForm from "./components/TransactionForm";
 import TransactionTable from "./components/TransactionTable";
@@ -135,23 +135,25 @@ export default function App() {
   const toggleTheme = () => setTheme((t) => (t === "dark" ? "light" : "dark"));
 
   // Cloud sync when logged in
+  const prevUserRef = useRef(null);
   useEffect(() => {
-    // Cleanup previous subscription
     if (unsub) {
       try { unsub(); } catch {}
       setUnsub(null);
     }
     if (!user) {
-      // Back to local-only (privacy-first)
       const keep = localStorage.getItem("keepLocalCache") === "true";
-      if (!keep) {
+      const wasLoggedIn = !!prevUserRef.current;
+      if (wasLoggedIn && !keep) {
         localStorage.removeItem("transactions");
         setTransactions([]);
       } else {
         setTransactions(loadTransactions());
       }
+      prevUserRef.current = null;
       return;
     }
+    prevUserRef.current = user;
     const colRef = collection(db, "users", user.uid, "transactions");
     (async () => {
       try {
@@ -200,6 +202,16 @@ export default function App() {
     }
   };
 
+  const updateTransaction = async (partial) => {
+    const t = normalizeTransaction(partial);
+    if (user) {
+      const ref = doc(db, "users", user.uid, "transactions", String(t.id));
+      await setDoc(ref, { ...t, updatedAt: serverTimestamp() }, { merge: true });
+    } else {
+      setTransactions((list) => list.map((x) => (x.id === t.id ? { ...x, ...t } : x)));
+    }
+  };
+
   const deleteTransaction = async (id) => {
     if (user) {
       const ref = doc(db, "users", user.uid, "transactions", String(id));
@@ -220,6 +232,7 @@ export default function App() {
         endDate={endDate}
         setStartDate={setStartDate}
         setEndDate={setEndDate}
+        updateTransaction={updateTransaction}
         deleteTransaction={deleteTransaction}
       />
       <BalanceChart transactions={filteredTransactions} startDate={startDate} endDate={endDate} />

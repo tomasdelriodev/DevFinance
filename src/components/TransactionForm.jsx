@@ -1,4 +1,5 @@
-﻿import { useState } from "react";
+import { useState } from "react";
+import { CATEGORIES } from "../utils/categories";
 
 export default function TransactionForm({ addTransaction }) {
   const [desc, setDesc] = useState("");
@@ -11,10 +12,13 @@ export default function TransactionForm({ addTransaction }) {
     if (!desc || !amount) return;
     const now = new Date();
     const dateOnly = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+    const normalizedAmountStr = String(amount).replace(",", ".");
+    const parsed = parseFloat(normalizedAmountStr);
+    if (!Number.isFinite(parsed)) return;
     const newTransaction = {
       id: Date.now(),
       desc,
-      amount: type === "income" ? parseFloat(amount) : -parseFloat(amount),
+      amount: type === "income" ? parsed : -Math.abs(parsed),
       type,
       category,
       date: now.toISOString(),
@@ -50,12 +54,11 @@ export default function TransactionForm({ addTransaction }) {
         <div className="input-group">
           <span className="input-group-text"><i className="fa-solid fa-dollar-sign" /></span>
           <input
-            type="number"
+            type="text"
             className="form-control"
             placeholder="0,00"
             aria-label="Monto"
             inputMode="decimal"
-            step="0.01"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
             required
@@ -65,12 +68,7 @@ export default function TransactionForm({ addTransaction }) {
 
       <div className="col-6 col-md-2">
         <label className="form-label mb-1">Tipo</label>
-        <select
-          className="form-select"
-          value={type}
-          onChange={(e) => setType(e.target.value)}
-          aria-label="Tipo"
-        >
+        <select className="form-select" value={type} onChange={(e) => setType(e.target.value)} aria-label="Tipo">
           <option value="income">Ingreso</option>
           <option value="expense">Gasto</option>
         </select>
@@ -78,19 +76,10 @@ export default function TransactionForm({ addTransaction }) {
 
       <div className="col-6 col-md-3">
         <label className="form-label mb-1">Categoría</label>
-        <select
-          className="form-select"
-          value={category}
-          onChange={(e) => setCategory(e.target.value)}
-          aria-label="Categoría"
-        >
-          <option value="General">General</option>
-          <option value="Sueldo">Sueldo</option>
-          <option value="Comida">Comida</option>
-          <option value="Transporte">Transporte</option>
-          <option value="Entretenimiento">Entretenimiento</option>
-          <option value="Salud">Salud</option>
-          <option value="Educacion">Educacion</option>
+        <select className="form-select" value={category} onChange={(e) => setCategory(e.target.value)} aria-label="Categoría">
+          {CATEGORIES.map((c) => (
+            <option key={c} value={c}>{c}</option>
+          ))}
         </select>
       </div>
 
@@ -100,3 +89,4 @@ export default function TransactionForm({ addTransaction }) {
     </form>
   );
 }
+

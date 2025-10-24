@@ -1,10 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
-import {
-  auth,
-  googleProvider,
-  githubProvider,
-  appleProvider,
-} from "../lib/firebase";
+import { auth, googleProvider, githubProvider } from "../lib/firebase";
 import {
   onAuthStateChanged,
   signInWithPopup,
@@ -47,8 +42,6 @@ export function AuthProvider({ children }) {
 
   const loginWithGoogle = () => loginWithProvider(googleProvider);
   const loginWithGithub = () => loginWithProvider(githubProvider);
-  const loginWithApple = () => signInWithPopup(auth, appleProvider);
-
   const loginWithEmail = (email, password) =>
     signInWithEmailAndPassword(auth, email, password);
   const registerWithEmail = async (email, password, displayName) => {
@@ -59,7 +52,7 @@ export function AuthProvider({ children }) {
   const logout = () => signOut(auth);
 
   const value = useMemo(
-    () => ({ user, loading, loginWithGoogle, loginWithGithub, loginWithApple, loginWithEmail, registerWithEmail, logout }),
+    () => ({ user, loading, loginWithGoogle, loginWithGithub, loginWithEmail, registerWithEmail, logout }),
     [user, loading]
   );
 

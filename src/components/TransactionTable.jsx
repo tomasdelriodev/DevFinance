@@ -1,4 +1,5 @@
 import { useMemo, useState, useEffect } from "react";
+import EditTransactionModal from "./EditTransactionModal";
 import { safeFormatDate } from "../utils/date";
 
 export default function TransactionTable({
@@ -8,11 +9,13 @@ export default function TransactionTable({
   endDate = "",
   setStartDate,
   setEndDate,
+  updateTransaction,
   deleteTransaction,
 }) {
   const INITIAL_LIMIT = 10;
   const [limit, setLimit] = useState(INITIAL_LIMIT);
   const [sortOrder, setSortOrder] = useState("desc"); // desc: mas reciente, asc: mas antiguo
+  const [editing, setEditing] = useState(null);
 
   const parseDate = (value) => {
     if (!value) return null;
@@ -54,6 +57,8 @@ export default function TransactionTable({
     setEndDate && setEndDate("");
   };
   const filtersActive = !!(startDate || endDate);
+
+  const handleEdit = (t) => setEditing(t);
 
   return (
     <div className="mb-5">
@@ -143,6 +148,13 @@ export default function TransactionTable({
                   </td>
                   <td className="text-end actions">
                     <button
+                      onClick={() => handleEdit(t)}
+                      className="btn btn-sm btn-outline-secondary me-2"
+                      title="Editar transacción"
+                    >
+                      <i className="fa-solid fa-pen-to-square"></i>
+                    </button>
+                    <button
                       onClick={() => {
                         if (window.confirm("¿Eliminar transacción?")) deleteTransaction(t.id);
                       }}
@@ -176,7 +188,12 @@ export default function TransactionTable({
           )}
         </div>
       )}
+      <EditTransactionModal
+        open={!!editing}
+        transaction={editing}
+        onClose={() => setEditing(null)}
+        onSave={(next) => { updateTransaction && updateTransaction(next); setEditing(null); }}
+      />
     </div>
   );
 }
-

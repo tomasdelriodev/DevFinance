@@ -1,7 +1,7 @@
 // Firebase initialization and shared exports
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
-import { getAuth, GoogleAuthProvider, GithubAuthProvider, OAuthProvider } from "firebase/auth";
+import { getAuth, GoogleAuthProvider, GithubAuthProvider } from "firebase/auth";
 import { getFirestore, enableIndexedDbPersistence } from "firebase/firestore";
 
 // Preferir variables de entorno; usar tu config como fallback inmediato
@@ -20,8 +20,6 @@ const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const googleProvider = new GoogleAuthProvider();
 export const githubProvider = new GithubAuthProvider();
-// Apple provider (needs Apple developer setup in Firebase Console)
-export const appleProvider = new OAuthProvider("apple.com");
 
 export const db = getFirestore(app);
 
