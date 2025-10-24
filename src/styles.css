@@ -154,6 +154,11 @@ main{
   border: 1px solid var(--input-border) !important;
   border-radius: 8px !important;
 }
+.input-group-text {
+  background-color: var(--input-bg) !important;
+  color: var(--text) !important;
+  border: 1px solid var(--input-border) !important;
+}
 .form-control::placeholder {
   color: #6c757d;
   opacity: 1;

@@ -142,8 +142,14 @@ export default function App() {
       setUnsub(null);
     }
     if (!user) {
-      // Back to local-only
-      setTransactions(loadTransactions());
+      // Back to local-only (privacy-first)
+      const keep = localStorage.getItem("keepLocalCache") === "true";
+      if (!keep) {
+        localStorage.removeItem("transactions");
+        setTransactions([]);
+      } else {
+        setTransactions(loadTransactions());
+      }
       return;
     }
     const colRef = collection(db, "users", user.uid, "transactions");
@@ -205,7 +211,7 @@ export default function App() {
 
   return (
     <div className="container py-4">
-      <Header theme={theme} onToggleTheme={toggleTheme} />
+      <Header theme={theme} onToggleTheme={toggleTheme} localMode={!user && transactions.length > 0} />
       <TransactionForm addTransaction={addTransaction} />
       <TransactionTable
         transactions={transactions}

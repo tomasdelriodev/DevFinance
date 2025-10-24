@@ -1,10 +1,21 @@
 import { useAuth } from "../context/AuthContext";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import AuthModal from "./AuthModal";
 
-export default function Header({ theme = "light", onToggleTheme }) {
+export default function Header({ theme = "light", onToggleTheme, localMode = false }) {
   const { user, loginWithGoogle, logout } = useAuth();
   const [showAuth, setShowAuth] = useState(false);
+  const [keepLocal, setKeepLocal] = useState(() => localStorage.getItem("keepLocalCache") === "true");
+  const [avatarOk, setAvatarOk] = useState(true);
+
+  useEffect(() => {
+    localStorage.setItem("keepLocalCache", keepLocal ? "true" : "false");
+  }, [keepLocal]);
+
+  useEffect(() => {
+    // Reset fallback when photoURL changes
+    setAvatarOk(true);
+  }, [user?.photoURL]);
   return (
     <header className="mb-5">
       <div className="container d-flex align-items-center">
@@ -49,12 +60,31 @@ export default function Header({ theme = "light", onToggleTheme }) {
             </button>
           ) : (
             <div className="d-flex align-items-center gap-2">
-              {user.photoURL ? (
-                <img src={user.photoURL} alt="avatar" style={{ width: 28, height: 28, borderRadius: "50%" }} />
+              {user.photoURL && avatarOk ? (
+                <img
+                  src={user.photoURL}
+                  alt=""
+                  referrerPolicy="no-referrer"
+                  onError={() => setAvatarOk(false)}
+                  style={{ width: 28, height: 28, borderRadius: "50%", objectFit: "cover" }}
+                />
               ) : (
                 <i className="fa-regular fa-circle-user" />
               )}
               <span className="d-none d-sm-inline">{user.displayName || user.email}</span>
+              <div className="form-check form-switch m-0 d-none d-md-flex align-items-center">
+                <input
+                  className="form-check-input"
+                  type="checkbox"
+                  id="keepLocalCacheSwitch"
+                  checked={keepLocal}
+                  onChange={(e) => setKeepLocal(e.target.checked)}
+                  title="Mantener datos locales al cerrar sesión"
+                />
+                <label className="form-check-label small ms-1" htmlFor="keepLocalCacheSwitch">
+                  Mantener datos locales
+                </label>
+              </div>
               <button type="button" className="btn btn-outline-secondary btn-sm" onClick={logout} title="Cerrar sesión">
                 Salir
               </button>
@@ -70,6 +100,11 @@ export default function Header({ theme = "light", onToggleTheme }) {
             <i className={`fa-solid ${theme === "dark" ? "fa-sun" : "fa-moon"}`} aria-hidden="true" />
           </button>
         </div>
+        {!user && localMode && (
+          <div className="mt-2 text-end">
+            <span className="badge bg-secondary">Sin sesión (local)</span>
+          </div>
+        )}
         <AuthModal open={showAuth} onClose={() => setShowAuth(false)} />
       </div>
     </header>
