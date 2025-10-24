@@ -330,3 +330,22 @@ html{ scroll-behavior: smooth; }
 @media (max-width: 576px){
   .chart-nav .btn{ padding: .2rem .5rem; font-size: .8rem; border-radius: 50rem; }
 }
+
+/* Auth modal (ligero, sin dependencia de JS extra) */
+.auth-modal-backdrop{
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1050;
+}
+.auth-modal-card{
+  width: min(420px, 92vw);
+  background: var(--card-bg);
+  color: var(--text);
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.2);
+  padding: 1rem;
+}

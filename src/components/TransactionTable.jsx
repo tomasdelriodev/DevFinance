@@ -1,4 +1,5 @@
 import { useMemo, useState, useEffect } from "react";
+import { safeFormatDate } from "../utils/date";
 
 export default function TransactionTable({
   transactions = [],
@@ -11,7 +12,8 @@ export default function TransactionTable({
 }) {
   const INITIAL_LIMIT = 10;
   const [limit, setLimit] = useState(INITIAL_LIMIT);
-  const [sortOrder, setSortOrder] = useState("desc"); // desc: más reciente, asc: más antiguo
+  const [sortOrder, setSortOrder] = useState("desc"); // desc: mas reciente, asc: mas antiguo
+
   const parseDate = (value) => {
     if (!value) return null;
     const d = new Date(value);
@@ -20,15 +22,12 @@ export default function TransactionTable({
 
   const { rows, totalBalance, filteredBalance } = useMemo(() => {
     const parseAnyDate = (t) => {
-      // Priorizar fecha con hora si existe
-      if (t.date) {
+      if (t?.date) {
         const d = new Date(t.date);
         if (!isNaN(d)) return d;
       }
-      // Luego fecha sin hora (medianoche local)
-      if (t.dateOnly) return new Date(t.dateOnly + "T00:00:00");
-      // Último recurso: id como timestamp si es numérico
-      if (t.id && !isNaN(Number(t.id))) return new Date(Number(t.id));
+      if (t?.dateOnly) return new Date(t.dateOnly + "T00:00:00");
+      if (t?.id && !isNaN(Number(t.id))) return new Date(Number(t.id));
       return null;
     };
     const withParsed = filteredTransactions.map((t) => ({ ...t, _date: parseAnyDate(t) }));
@@ -42,18 +41,13 @@ export default function TransactionTable({
     return { rows: withParsed, totalBalance: totalBal, filteredBalance: filteredBal };
   }, [transactions, filteredTransactions, sortOrder]);
 
-  // Resetear el límite cuando cambian los filtros de fecha
   useEffect(() => {
     setLimit(INITIAL_LIMIT);
   }, [startDate, endDate, sortOrder]);
 
   const formatCurrency = (value) =>
     new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS" }).format(value);
-  const formatDate = (value) => {
-    const d = parseDate(value);
-    if (!d) return "—";
-    return new Intl.DateTimeFormat("es-AR").format(d);
-  };
+  const formatDate = (value) => safeFormatDate(parseDate(value));
 
   const clearFilters = () => {
     setStartDate && setStartDate("");
@@ -124,39 +118,39 @@ export default function TransactionTable({
               </tr>
             </thead>
             <tbody>
-          {rows.slice(0, limit).map((t) => (
-            <tr key={t.id} className={t.type === "income" ? "card-income" : "card-expense"}>
-              <td data-label="Fecha">{formatDate(t.dateOnly || t.date)}</td>
-              <td data-label="Descripción">{t.desc}</td>
-              <td data-label="Tipo" className="only-desktop">
-                {t.type === "income" ? (
-                  <span className="badge bg-success">Ingreso</span>
-                ) : (
-                  <span className="badge bg-danger">Gasto</span>
-                )}
-              </td>
-              <td data-label="Categoría" className="only-desktop">{t.category}</td>
-              <td data-label="Detalle" className="only-mobile">
-                {t.type === "income" ? (
-                  <span className="badge bg-success me-2">Ingreso</span>
-                ) : (
-                  <span className="badge bg-danger me-2">Gasto</span>
-                )}
-                <span>{t.category}</span>
-              </td>
-              <td data-label="Monto" className={`text-end ${t.amount >= 0 ? "text-success fw-bold" : "text-danger fw-bold"}`}>
-                {formatCurrency(t.amount)}
-              </td>
-              <td className="text-end actions">
-                <button
-                  onClick={() => {
-                    if (window.confirm("¿Eliminar transacción?")) deleteTransaction(t.id);
-                  }}
-                  className="btn btn-sm btn-outline-danger"
-                >
-                  <i className="fa-solid fa-trash"></i>
-                </button>
-              </td>
+              {rows.slice(0, limit).map((t) => (
+                <tr key={t.id} className={t.type === "income" ? "card-income" : "card-expense"}>
+                  <td data-label="Fecha">{formatDate(t.dateOnly || t.date)}</td>
+                  <td data-label="Descripción">{t.desc}</td>
+                  <td data-label="Tipo" className="only-desktop">
+                    {t.type === "income" ? (
+                      <span className="badge bg-success">Ingreso</span>
+                    ) : (
+                      <span className="badge bg-danger">Gasto</span>
+                    )}
+                  </td>
+                  <td data-label="Categoría" className="only-desktop">{t.category}</td>
+                  <td data-label="Detalle" className="only-mobile">
+                    {t.type === "income" ? (
+                      <span className="badge bg-success me-2">Ingreso</span>
+                    ) : (
+                      <span className="badge bg-danger me-2">Gasto</span>
+                    )}
+                    <span>{t.category}</span>
+                  </td>
+                  <td data-label="Monto" className={`text-end ${t.amount >= 0 ? "text-success fw-bold" : "text-danger fw-bold"}`}>
+                    {formatCurrency(t.amount)}
+                  </td>
+                  <td className="text-end actions">
+                    <button
+                      onClick={() => {
+                        if (window.confirm("¿Eliminar transacción?")) deleteTransaction(t.id);
+                      }}
+                      className="btn btn-sm btn-outline-danger"
+                    >
+                      <i className="fa-solid fa-trash"></i>
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -185,3 +179,4 @@ export default function TransactionTable({
     </div>
   );
 }
+

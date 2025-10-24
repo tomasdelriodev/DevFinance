@@ -1,4 +1,10 @@
+import { useAuth } from "../context/AuthContext";
+import { useState } from "react";
+import AuthModal from "./AuthModal";
+
 export default function Header({ theme = "light", onToggleTheme }) {
+  const { user, loginWithGoogle, logout } = useAuth();
+  const [showAuth, setShowAuth] = useState(false);
   return (
     <header className="mb-5">
       <div className="container d-flex align-items-center">
@@ -32,6 +38,28 @@ export default function Header({ theme = "light", onToggleTheme }) {
               <i className="fa-solid fa-chart-pie" aria-hidden="true" />
             </a>
           </nav>
+          {!user ? (
+            <button
+              type="button"
+              className="btn btn-outline-secondary btn-sm"
+              onClick={() => setShowAuth(true)}
+              title="Iniciar sesión"
+            >
+              Entrar
+            </button>
+          ) : (
+            <div className="d-flex align-items-center gap-2">
+              {user.photoURL ? (
+                <img src={user.photoURL} alt="avatar" style={{ width: 28, height: 28, borderRadius: "50%" }} />
+              ) : (
+                <i className="fa-regular fa-circle-user" />
+              )}
+              <span className="d-none d-sm-inline">{user.displayName || user.email}</span>
+              <button type="button" className="btn btn-outline-secondary btn-sm" onClick={logout} title="Cerrar sesión">
+                Salir
+              </button>
+            </div>
+          )}
           <button
             type="button"
             className="btn btn-primary icon-btn"
@@ -42,6 +70,7 @@ export default function Header({ theme = "light", onToggleTheme }) {
             <i className={`fa-solid ${theme === "dark" ? "fa-sun" : "fa-moon"}`} aria-hidden="true" />
           </button>
         </div>
+        <AuthModal open={showAuth} onClose={() => setShowAuth(false)} />
       </div>
     </header>
   );

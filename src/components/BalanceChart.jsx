@@ -1,4 +1,5 @@
 import { useMemo, useRef } from "react";
+import { safeFormatDate } from "../utils/date";
 import {
   Chart as ChartJS,
   BarController,
@@ -10,7 +11,7 @@ import {
   Title,
 } from "chart.js";
 import { Bar } from "react-chartjs-2";
-import useReveal from "/MisProyectos/devfinance/src/hooks/useReveal";
+import useReveal from "../hooks/useReveal";
 ChartJS.register(
   BarController,
   BarElement,
@@ -62,15 +63,14 @@ export default function BalanceChart({ transactions = [], startDate = "", endDat
 
   const filterLabel = useMemo(() => {
     if (!startDate && !endDate) return "";
-    const fmt = (s) =>
-      s ? new Intl.DateTimeFormat("es-AR").format(new Date(s + "T00:00:00")) : "";
+    const fmt = (s) => (s ? safeFormatDate(new Date(s + "T00:00:00")) : "");
     const from = fmt(startDate);
     const to = fmt(endDate);
     return `Filtrado: ${from || 'inicio'} — ${to || 'hoy'}`;
   }, [startDate, endDate]);
 
   return (
-    <div id="balance-chart" ref={containerRef} className="mt-5 text-center reveal">
+    <div id="balance-chart" ref={containerRef} className="mt-5 text-center reveal active">
       <h4 className="fw-bold mb-4">Resumen Financiero</h4>
       {filterLabel && <div className="text-muted mb-2" style={{fontSize: '0.9rem'}}>{filterLabel}</div>}
       <div

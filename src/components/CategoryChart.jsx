@@ -1,4 +1,5 @@
 import { useMemo, useRef } from "react";
+import { safeFormatDate } from "../utils/date";
 import {
   Chart as ChartJS,
   ArcElement,
@@ -7,7 +8,7 @@ import {
   DoughnutController,
 } from "chart.js";
 import { Doughnut } from "react-chartjs-2";
-import useReveal from "/MisProyectos/devfinance/src/hooks/useReveal";
+import useReveal from "../hooks/useReveal";
 
 ChartJS.register(ArcElement, Tooltip, Legend, DoughnutController);
 
@@ -15,7 +16,6 @@ export default function CategoryChart({ transactions = [], startDate = "", endDa
   const containerRef = useRef(null);
   useReveal(containerRef);
 
-  // Colores fijos por categoría (Sueldo siempre verde)
   const CATEGORY_COLORS = {
     Sueldo: "#198754",
     General: "#6c757d",
@@ -33,15 +33,14 @@ export default function CategoryChart({ transactions = [], startDate = "", endDa
     }
     const totals = transactions.reduce((acc, t) => {
       const key = t.category || "Sin categoría";
-      acc[key] = (acc[key] || 0) + Math.abs(Number(t.amount));
+      let val = Math.abs(Number(t.amount));
+      if (!Number.isFinite(val)) val = 0;
+      acc[key] = (acc[key] || 0) + val;
       return acc;
     }, {});
     const labels = Object.keys(totals);
-    const values = Object.values(totals);
-    const backgroundColor = labels.map(
-      (label, index) => CATEGORY_COLORS[label] || FALLBACKS[index % FALLBACKS.length]
-    );
-
+    const values = Object.values(totals).map((v) => (Number.isFinite(v) ? v : 0));
+    const backgroundColor = labels.map((label, index) => CATEGORY_COLORS[label] || FALLBACKS[index % FALLBACKS.length]);
     return {
       data: {
         labels,
@@ -67,14 +66,22 @@ export default function CategoryChart({ transactions = [], startDate = "", endDa
         legend: { position: "bottom" },
         tooltip: {
           callbacks: {
-            label: (context) =>
-              `${context.label}: $${context.parsed.toLocaleString("es-AR")}`,
+            label: (context) => `${context.label}: $${context.parsed.toLocaleString("es-AR")}`,
           },
         },
       },
     }),
     []
   );
+
+  // Hooks must be before any conditional return
+  const filterLabel = useMemo(() => {
+    if (!startDate && !endDate) return "";
+    const fmt = (s) => (s ? safeFormatDate(new Date(s + "T00:00:00")) : "");
+    const from = fmt(startDate);
+    const to = fmt(endDate);
+    return `Filtrado: ${from || 'inicio'} — ${to || 'hoy'}`;
+  }, [startDate, endDate]);
 
   if (!hasValues || !data) {
     return (
@@ -84,16 +91,8 @@ export default function CategoryChart({ transactions = [], startDate = "", endDa
     );
   }
 
-  const filterLabel = useMemo(() => {
-    if (!startDate && !endDate) return "";
-    const fmt = (s) => (s ? new Intl.DateTimeFormat("es-AR").format(new Date(s + "T00:00:00")) : "");
-    const from = fmt(startDate);
-    const to = fmt(endDate);
-    return `Filtrado: ${from || 'inicio'} — ${to || 'hoy'}`;
-  }, [startDate, endDate]);
-
   return (
-    <div id="category-chart" ref={containerRef} className="mt-5 text-center reveal">
+    <div id="category-chart" ref={containerRef} className="mt-5 text-center reveal active">
       <h4 className="fw-bold mb-2">Distribución por Categoría</h4>
       {filterLabel && (
         <div className="text-muted mb-2" style={{ fontSize: "0.9rem" }}>{filterLabel}</div>
