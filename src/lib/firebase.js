@@ -1,11 +1,9 @@
-// Firebase initialization and shared exports
-import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-import { getAuth, GoogleAuthProvider, GithubAuthProvider } from "firebase/auth";
-import { getFirestore, enableIndexedDbPersistence } from "firebase/firestore";
+// Lazy Firebase loader to reduce initial bundle size
+// Consumers call loadFirebase() to get initialized SDK modules on demand.
 
-// Preferir variables de entorno; usar tu config como fallback inmediato
-const firebaseConfig = {
+let cached = null;
+
+export const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyA7zFJkDthQT2PS9TykkT2ZPjiNX_q2TnU",
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "devfinance-985ee.firebaseapp.com",
   projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "devfinance-985ee",
@@ -15,25 +13,31 @@ const firebaseConfig = {
   measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || "G-NMN06GB25K",
 };
 
-const app = initializeApp(firebaseConfig);
+export async function loadFirebase() {
+  if (cached) return cached;
 
-export const auth = getAuth(app);
-export const googleProvider = new GoogleAuthProvider();
-export const githubProvider = new GithubAuthProvider();
+  const { initializeApp } = await import("firebase/app");
+  const app = initializeApp(firebaseConfig);
 
-export const db = getFirestore(app);
+  const authModule = await import("firebase/auth");
+  const firestoreModule = await import("firebase/firestore");
+  let analytics = null;
+  try {
+    const { getAnalytics } = await import("firebase/analytics");
+    if (typeof window !== "undefined" && firebaseConfig.measurementId) {
+      analytics = getAnalytics(app);
+    }
+  } catch {}
 
-// Optional: offline persistence
-enableIndexedDbPersistence(db).catch(() => {
-  // Ignored: could be multiple tabs open or unsupported browser
-});
+  const auth = authModule.getAuth(app);
+  const googleProvider = new authModule.GoogleAuthProvider();
+  const githubProvider = new authModule.GithubAuthProvider();
 
-// Optional: Analytics (solo en navegador/https soportado)
-export let analytics = null;
-try {
-  if (typeof window !== "undefined" && firebaseConfig.measurementId) {
-    analytics = getAnalytics(app);
-  }
-} catch (_) {
-  // Ignorar fallas en desarrollo no https
+  const db = firestoreModule.getFirestore(app);
+  try {
+    await firestoreModule.enableIndexedDbPersistence(db);
+  } catch {}
+
+  cached = { app, auth, googleProvider, githubProvider, db, analytics, authModule, firestoreModule };
+  return cached;
 }

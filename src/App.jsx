@@ -1,22 +1,12 @@
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo, useRef, lazy, Suspense } from "react";
 import Header from "./components/Header";
 import TransactionForm from "./components/TransactionForm";
 import TransactionTable from "./components/TransactionTable";
-import BalanceChart from "./components/BalanceChart";
-import CategoryChart from "./components/CategoryChart";
+const BalanceChart = lazy(() => import("./components/BalanceChart"));
+const CategoryChart = lazy(() => import("./components/CategoryChart"));
 import { useAuth } from "./context/AuthContext";
-import { db } from "./lib/firebase";
-import {
-  collection,
-  doc,
-  getDocs,
-  onSnapshot,
-  orderBy,
-  query,
-  serverTimestamp,
-  setDoc,
-  deleteDoc,
-} from "firebase/firestore";
+import { loadFirebase } from "./lib/firebase";
+import useInView from "./hooks/useInView";
 
 export default function App() {
   const { user } = useAuth();
@@ -73,6 +63,11 @@ export default function App() {
 
   const [transactions, setTransactions] = useState(loadTransactions);
   const [unsub, setUnsub] = useState(null);
+  const [fb, setFb] = useState(null);
+
+  useEffect(() => {
+    loadFirebase().then(setFb);
+  }, []);
 
   // Filtros de fecha elevados para sincronizar tabla y gráficos
   const [startDate, setStartDate] = useState(""); // formato YYYY-MM-DD
@@ -154,8 +149,10 @@ export default function App() {
       return;
     }
     prevUserRef.current = user;
-    const colRef = collection(db, "users", user.uid, "transactions");
     (async () => {
+      const loaded = fb || (await loadFirebase());
+      const { collection, doc, getDocs, onSnapshot, orderBy, query, serverTimestamp, setDoc } = loaded.firestoreModule;
+      const colRef = collection(loaded.db, "users", user.uid, "transactions");
       try {
         // Migrate local -> cloud if remote empty
         const snap = await getDocs(colRef);
@@ -189,12 +186,14 @@ export default function App() {
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user]);
+  }, [user, fb]);
 
   const addTransaction = async (transaction) => {
     const t = normalizeTransaction(transaction);
     if (user) {
-      const colRef = collection(db, "users", user.uid, "transactions");
+      const loaded = fb || (await loadFirebase());
+      const { collection, doc, setDoc, serverTimestamp } = loaded.firestoreModule;
+      const colRef = collection(loaded.db, "users", user.uid, "transactions");
       const ref = doc(colRef, String(t.id));
       await setDoc(ref, { ...t, createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
     } else {
@@ -205,7 +204,9 @@ export default function App() {
   const updateTransaction = async (partial) => {
     const t = normalizeTransaction(partial);
     if (user) {
-      const ref = doc(db, "users", user.uid, "transactions", String(t.id));
+      const loaded = fb || (await loadFirebase());
+      const { doc, setDoc, serverTimestamp } = loaded.firestoreModule;
+      const ref = doc(loaded.db, "users", user.uid, "transactions", String(t.id));
       await setDoc(ref, { ...t, updatedAt: serverTimestamp() }, { merge: true });
     } else {
       setTransactions((list) => list.map((x) => (x.id === t.id ? { ...x, ...t } : x)));
@@ -214,7 +215,9 @@ export default function App() {
 
   const deleteTransaction = async (id) => {
     if (user) {
-      const ref = doc(db, "users", user.uid, "transactions", String(id));
+      const loaded = fb || (await loadFirebase());
+      const { doc, deleteDoc } = loaded.firestoreModule;
+      const ref = doc(loaded.db, "users", user.uid, "transactions", String(id));
       await deleteDoc(ref).catch(() => {});
     } else {
       setTransactions(transactions.filter((t) => t.id !== id));
@@ -235,8 +238,24 @@ export default function App() {
         updateTransaction={updateTransaction}
         deleteTransaction={deleteTransaction}
       />
-      <BalanceChart transactions={filteredTransactions} startDate={startDate} endDate={endDate} />
-      <CategoryChart transactions={filteredTransactions} startDate={startDate} endDate={endDate} />
+      {/* Lazy render charts when in view */}
+      <ChartsSection transactions={filteredTransactions} startDate={startDate} endDate={endDate} />
+  </div>
+  );
+}
+
+function ChartsSection({ transactions, startDate, endDate }) {
+  const [ref, inView] = useInView({ rootMargin: "200px" });
+  return (
+    <div ref={ref}>
+      {inView ? (
+        <Suspense fallback={<div className="mt-3">Cargando gráficos…</div>}>
+          <BalanceChart transactions={transactions} startDate={startDate} endDate={endDate} />
+          <CategoryChart transactions={transactions} startDate={startDate} endDate={endDate} />
+        </Suspense>
+      ) : (
+        <div className="mt-4" style={{ minHeight: 600 }} />
+      )}
     </div>
   );
 }

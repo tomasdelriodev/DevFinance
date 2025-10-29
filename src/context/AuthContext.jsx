@@ -1,55 +1,61 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
-import { auth, googleProvider, githubProvider } from "../lib/firebase";
-import {
-  onAuthStateChanged,
-  signInWithPopup,
-  signInWithRedirect,
-  getRedirectResult,
-  signOut,
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-  updateProfile,
-} from "firebase/auth";
+import { loadFirebase } from "../lib/firebase";
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [fb, setFb] = useState(null);
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (u) => {
-      setUser(u);
-      setLoading(false);
-    });
-    // Captura resultado de redirect si ocurrió (no rompe si no hubo)
-    getRedirectResult(auth).catch(() => {});
-    return () => unsub();
+    let off = null;
+    (async () => {
+      const loaded = await loadFirebase();
+      setFb(loaded);
+      const { onAuthStateChanged, getRedirectResult } = loaded.authModule;
+      off = onAuthStateChanged(loaded.auth, (u) => {
+        setUser(u);
+        setLoading(false);
+      });
+      getRedirectResult(loaded.auth).catch(() => {});
+    })();
+    return () => { if (off) try { off(); } catch {} };
   }, []);
 
   const loginWithProvider = async (provider) => {
+    if (!fb) throw new Error("Firebase no cargado");
+    const { signInWithPopup, signInWithRedirect } = fb.authModule;
     try {
-      return await signInWithPopup(auth, provider);
+      return await signInWithPopup(fb.auth, provider);
     } catch (err) {
       const code = err?.code || "";
       if (code.includes("popup-blocked")) {
-        // Fallback a redirect cuando el popup está bloqueado
-        return signInWithRedirect(auth, provider);
+        return signInWithRedirect(fb.auth, provider);
       }
       throw err;
     }
   };
 
-  const loginWithGoogle = () => loginWithProvider(googleProvider);
-  const loginWithGithub = () => loginWithProvider(githubProvider);
-  const loginWithEmail = (email, password) =>
-    signInWithEmailAndPassword(auth, email, password);
+  const loginWithGoogle = () => loginWithProvider(fb?.googleProvider);
+  const loginWithGithub = () => loginWithProvider(fb?.githubProvider);
+  const loginWithEmail = async (email, password) => {
+    if (!fb) throw new Error("Firebase no cargado");
+    const { signInWithEmailAndPassword } = fb.authModule;
+    return signInWithEmailAndPassword(fb.auth, email, password);
+  };
   const registerWithEmail = async (email, password, displayName) => {
-    const cred = await createUserWithEmailAndPassword(auth, email, password);
+    if (!fb) throw new Error("Firebase no cargado");
+    const { createUserWithEmailAndPassword, updateProfile } = fb.authModule;
+    const cred = await createUserWithEmailAndPassword(fb.auth, email, password);
     if (displayName) await updateProfile(cred.user, { displayName });
     return cred;
   };
-  const logout = () => signOut(auth);
+  const logout = async () => {
+    if (!fb) return;
+    const { signOut } = fb.authModule;
+    return signOut(fb.auth);
+  };
 
   const value = useMemo(
     () => ({ user, loading, loginWithGoogle, loginWithGithub, loginWithEmail, registerWithEmail, logout }),
@@ -62,3 +68,4 @@ export function AuthProvider({ children }) {
 export function useAuth() {
   return useContext(AuthContext);
 }
+

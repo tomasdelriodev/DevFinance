@@ -2,6 +2,21 @@
 
 Aplicación React + Vite para registrar ingresos y gastos, con autenticación Firebase, sincronización en Firestore, gráficos con Chart.js y modo oscuro.
 
+▶ Live demo: https://devfinance-985ee.web.app/
+
+## Características
+
+- Balance y tabla de transacciones con filtros por fecha/categoría.
+- Gráficos de balance y por categoría (Chart.js).
+- Autenticación con Firebase Auth y datos por usuario en Firestore.
+- PWA básico: manifest e iconos listos para Firebase Hosting.
+
+## Stack
+
+- React + Vite
+- Firebase (Auth, Firestore)
+- Chart.js
+
 ## Requisitos
 
 - Node.js 18+ (recomendado 20)
@@ -27,7 +42,7 @@ VITE_FIREBASE_MEASUREMENT_ID=...
 npm ci
 ```
 
-3) Levanta el entorno de desarrollo:
+3) Desarrollo:
 
 ```
 npm run dev
@@ -53,5 +68,4 @@ Se incluye un workflow de GitHub Actions (`.github/workflows/ci.yml`) que ejecut
 
 - Edición rápida de transacciones disponible desde la tabla (icono de lápiz).
 - Entrada de montos acepta coma o punto como separador decimal.
-- PWA básico: `public/manifest.json` y metatags; ajusta `og:url` y los íconos según tu dominio/marca.
-- Si no tienes configurado el proveedor Apple en Firebase, ignora esa opción en el código.
+- La imagen social (`public/og-image.png`) se usa en Open Graph/Twitter.

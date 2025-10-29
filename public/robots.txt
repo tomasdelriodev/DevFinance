@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://devfinance-985ee.web.app/sitemap.xml
+
