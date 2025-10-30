@@ -49,7 +49,7 @@ export default function App() {
       const arr = saved ? JSON.parse(saved) : [];
       if (!Array.isArray(arr)) return [];
       return arr.map(normalizeTransaction);
-    } catch (_e) {
+    } catch {
       return [];
     }
   };
@@ -133,7 +133,7 @@ export default function App() {
   const prevUserRef = useRef(null);
   useEffect(() => {
     if (unsub) {
-      try { unsub(); } catch {}
+      try { unsub(); } catch { /* ignore unsubscribe errors */ }
       setUnsub(null);
     }
     if (!user) {
@@ -170,7 +170,7 @@ export default function App() {
             })
           );
         }
-      } catch {}
+      } catch { /* ignore initial sync errors */ }
       // Subscribe to remote changes ordered by date (ISO string)
       const q = query(colRef, orderBy("date", "desc"));
       const off = onSnapshot(q, (snapshot) => {
@@ -182,7 +182,7 @@ export default function App() {
     // Cleanup on unmount or user change
     return () => {
       if (unsub) {
-        try { unsub(); } catch {}
+        try { unsub(); } catch { /* ignore cleanup unsubscribe errors */ }
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps

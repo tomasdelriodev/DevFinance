@@ -12,20 +12,21 @@ import useReveal from "../hooks/useReveal";
 
 ChartJS.register(ArcElement, Tooltip, Legend, DoughnutController);
 
+// Stable color maps outside the component for exhaustive-deps
+const CATEGORY_COLORS = {
+  Sueldo: "#198754",
+  General: "#6c757d",
+  Comida: "#fd7e14",
+  Transporte: "#0d6efd",
+  Entretenimiento: "#6610f2",
+  Salud: "#20c997",
+  Educacion: "#ffc107",
+};
+const FALLBACKS = ["#0dcaf0", "#6f42c1", "#dc3545", "#198754", "#fd7e14", "#0d6efd"];
+
 export default function CategoryChart({ transactions = [], startDate = "", endDate = "" }) {
   const containerRef = useRef(null);
   useReveal(containerRef);
-
-  const CATEGORY_COLORS = {
-    Sueldo: "#198754",
-    General: "#6c757d",
-    Comida: "#fd7e14",
-    Transporte: "#0d6efd",
-    Entretenimiento: "#6610f2",
-    Salud: "#20c997",
-    Educacion: "#ffc107",
-  };
-  const FALLBACKS = ["#0dcaf0", "#6f42c1", "#dc3545", "#198754", "#fd7e14", "#0d6efd"];
 
   const { data, hasValues } = useMemo(() => {
     if (!transactions.length) {

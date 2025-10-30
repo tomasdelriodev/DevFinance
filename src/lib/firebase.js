@@ -27,7 +27,7 @@ export async function loadFirebase() {
     if (typeof window !== "undefined" && firebaseConfig.measurementId) {
       analytics = getAnalytics(app);
     }
-  } catch {}
+  } catch { /* analytics is optional in some environments */ }
 
   const auth = authModule.getAuth(app);
   const googleProvider = new authModule.GoogleAuthProvider();
@@ -36,7 +36,7 @@ export async function loadFirebase() {
   const db = firestoreModule.getFirestore(app);
   try {
     await firestoreModule.enableIndexedDbPersistence(db);
-  } catch {}
+  } catch { /* ignore persistence errors (e.g., multiple tabs) */ }
 
   cached = { app, auth, googleProvider, githubProvider, db, analytics, authModule, firestoreModule };
   return cached;

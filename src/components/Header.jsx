@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import AuthModal from "./AuthModal";
 
 export default function Header({ theme = "light", onToggleTheme, localMode = false }) {
-  const { user, loginWithGoogle, logout } = useAuth();
+  const { user, logout } = useAuth();
   const [showAuth, setShowAuth] = useState(false);
   const [keepLocal, setKeepLocal] = useState(() => localStorage.getItem("keepLocalCache") === "true");
   const [avatarOk, setAvatarOk] = useState(true);
